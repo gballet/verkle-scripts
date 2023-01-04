@@ -1,5 +1,4 @@
 #!/bin/sh
-set -m
 
 rm -rf eldata
 mkdir eldata
@@ -52,5 +51,3 @@ cat <<END | nc -U $PWD/eldata/geth.ipc -q 0
   "id": 758465
 }
 END
-
-fg
