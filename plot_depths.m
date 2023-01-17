@@ -1,5 +1,8 @@
+disp("loading account data")
 accounts = load('accounts.dat');
+disp("loading storage data")
 storage = load('storage.dat');
+pkg load statistics;
 boxplot({accounts, storage});
 axis([0 3 -1 15])
 set(gca,'XTickLabel',{'Accounts' , 'Storage'});
