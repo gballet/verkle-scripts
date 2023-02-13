@@ -70,16 +70,7 @@ Thread.new do
   end
 end
 
-# A helper function to call one of the backends
-def forward_call url, data
-  uri = URI(url)
-  https = Net::HTTP.new(uri.host, uri.port)
-  https.use_ssl = true
 
-  req =  Net::HTTP::Post.new(uri.path)
-  req.body = data
-  req['Content-Type'] = 'application/json'
-  https.request(req).body.read
 end
 
 # This implements a post handler, that redirects
