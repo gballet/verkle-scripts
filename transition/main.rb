@@ -66,6 +66,10 @@ Thread.new do
       uri = URI(provider_url)
       response = Net::HTTP.get_response(uri)
       if response.code == "200"
+        # check if the conversion has completed
+        resp = JSON.body.parse(response.body.read)
+        next if resp["complete"] == false
+
         File.write(status_file, mode)
         # replay all the payloads in the db
         DB[:payloads].order(:id).each do |row|
