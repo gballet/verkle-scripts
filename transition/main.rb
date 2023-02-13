@@ -10,7 +10,7 @@ require 'optimist'
 
 # Parse the command line arguments
 opts = Optimist::options do
-  opt :fork_block, "Block number at which to fork", type: :integer
+  opt :fork_block, "Block number at which to fork", type: :integer, default: 100000
   opt :mpt_url, "URL of the MPT backend", type: :string, default: "https://localhost:8551"
   opt :vkt_url, "URL of the verkle backend", type: :string, default: "https://localhost:8552"
   opt :provider_url, "URL to poll for the converted data"
@@ -54,8 +54,6 @@ status = DB[:status].first
 # Reads the mode from the database
 mode = status[:mode]
 
-# Block number at which the fork happens
-FORK_BLOCK = 1000
 # Start a thread to poll a data delivery address
 Thread.new do
   while true
