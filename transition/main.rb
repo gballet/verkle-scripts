@@ -92,23 +92,25 @@ post '/' do
   parameters = command['params']
   number = parameters['number'].to_i(16)  
   
-  # Check if we reached the transition condition
-  if transitionned == false && number >= fork_block
-    transitionned = true
-    status.update(transitionned: true)
-  end
-
-  if converted
-    # Also send it to the conversion code, if it
-    # is transitioned
-    forward_call(vkt_url, data) unless transitionned
+  case mode
+    when 0
+      # Ongoing conversion, save the data to the DB in
+      # order to replay it later.
+      forward_call(mpt_url, data)
+      DB[:payloads].insert(data: parameters, id: number)
+    when 1
+      # Conversion results were downloaded and applied,
+      # forward to both endpoints.
+      response_vkt = forward_call(vkt_url, data)
+      if response_vkt["error"]
+        puts "Warning: backend B returned non-null error field: #{response_vkt["error"]}"
+      end
+      forward_call(mpt_url, data)
   else
-    # Just save the call, to be replayed once the
-    # conversion has completed.
-    DB[:payloads].insert(data: parameters)
+    # Switch block arrived, only forward to the verkle backend
+    forward_call(vkt_url, data)
   end
 
-  forward_call(transitionned ? vkt_url : mpt_url, data)
 end
 
 # Indicate that the data has been converted. It will
