@@ -13,12 +13,29 @@ opts = Optimist::options do
   opt :fork_block, "Block number at which to fork", type: :integer
   opt :mpt_url, "URL of the MPT backend", type: :string, default: "https://localhost:8551"
   opt :vkt_url, "URL of the verkle backend", type: :string, default: "https://localhost:8552"
+  opt :provider_url, "URL to poll for the converted data"
 end
 
 fork_block = opts[:fork_block]
 mpt_url = opts[:mpt_url]
 vkt_url = opts[:vkt_url]
+provider_url = opts[:provider_url]
 
+POLL_PERIOD = 600
+
+# A helper function to call one of the backends
+def forward_call url, data
+  uri = URI(url)
+  https = Net::HTTP.new(uri.host, uri.port)
+  https.use_ssl = true
+
+  req =  Net::HTTP::Post.new(uri.path)
+  req.body = data
+  req['Content-Type'] = 'application/json'
+  https.request(req).body.read
+end
+
+# Create the db connection
 DB = Sequel.connect('sqlite://transition.db')
 
 # Create the payloads table if it doesn't exist
@@ -39,6 +56,21 @@ converted = !status.nil? && status[:converted]
 
 # Block number at which the fork happens
 FORK_BLOCK = 1000
+# Start a thread to poll a data delivery address
+Thread.new do
+  while true
+    if mode == 0
+      uri = URI(provider_url)
+      response = Net::HTTP.get_response(uri)
+      if response.code == "200"
+        mode = 1
+        File.write(status_file, mode)
+        break
+      end
+    end
+    sleep POLL_PERIOD
+  end
+end
 
 # A helper function to call one of the backends
 def forward_call url, data
