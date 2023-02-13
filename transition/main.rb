@@ -80,9 +80,6 @@ Thread.new do
   end
 end
 
-
-end
-
 # This implements a post handler, that redirects
 # each RPC call to both the verkle and MPT backends,
 # until the transition block is reached.
