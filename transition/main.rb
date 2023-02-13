@@ -68,7 +68,7 @@ Thread.new do
       if response.code == "200"
         # check if the conversion has completed
         resp = JSON.body.parse(response.body.read)
-        next if resp["complete"] == false
+        next if resp["done"] == false
 
         File.write(status_file, mode)
         # replay all the payloads in the db
