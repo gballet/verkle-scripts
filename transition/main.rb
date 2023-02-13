@@ -61,8 +61,8 @@ Thread.new do
       uri = URI(provider_url)
       response = Net::HTTP.get_response(uri)
       if response.code == "200"
-        mode = 1
         File.write(status_file, mode)
+        mode = 1
         break
       end
     end
