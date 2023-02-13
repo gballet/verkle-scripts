@@ -67,6 +67,11 @@ Thread.new do
       response = Net::HTTP.get_response(uri)
       if response.code == "200"
         File.write(status_file, mode)
+        # replay all the payloads in the db
+        DB[:payloads].order(:id).each do |row|
+          forward_call(vkt_url, row[:payload])
+        end
+
         set_mode 1
         break
       end
@@ -109,31 +114,4 @@ post '/' do
     forward_call(vkt_url, data)
   end
 
-end
-
-# Indicate that the data has been converted. It will
-# replay all saved blocks.
-post '/converted' do
-  DB[:payloads].each do |row|
-    forward_call(vkt_url, row[:payload])
-  end
-  
-  # Clear the table
-  DB[:payloads].delete
-  
-  # Send a fork choice update message
-  forward_call(vkt_url, {
-    jsonrpc: "2.0",
-    method: "engine_forkchoiceUpdatedV1",
-    params: [
-      {
-        headBlockHash: backlog.last['hash'],
-        finalizedBlockHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        safeBlockHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-      }
-    ]
-  }.to_json)
-  
-  converted = true
-  status.update(converted: true)
 end
