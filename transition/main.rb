@@ -50,9 +50,14 @@ DB.create_table? :status do
   Integer :mode, default: 0
 end
 
-status = DB[:status].first
 # Reads the mode from the database
+status = DB[:status].first
 mode = status[:mode]
+
+def set_mode number
+  mode = number
+  status.update(mode: mode)
+end
 
 # Start a thread to poll a data delivery address
 Thread.new do
@@ -62,7 +67,7 @@ Thread.new do
       response = Net::HTTP.get_response(uri)
       if response.code == "200"
         File.write(status_file, mode)
-        mode = 1
+        set_mode 1
         break
       end
     end
@@ -82,6 +87,8 @@ post '/' do
   method = command['method']
   parameters = command['params']
   number = parameters['number'].to_i(16)  
+  
+  set_mode(2) if number >= fork_block && mode < 2
   
   case mode
     when 0
