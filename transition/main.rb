@@ -87,7 +87,6 @@ end
 post '/' do
   data = request.body.read
   command = JSON.parse(data)
-  method = command['method']
   parameters = command['params']
   number = parameters['number'].to_i(16)  
   
@@ -98,7 +97,7 @@ post '/' do
       # Ongoing conversion, save the data to the DB in
       # order to replay it later.
       forward_call(mpt_url, data)
-      DB[:payloads].insert(data: parameters, id: number)
+      DB[:payloads].insert(data: data, id: number)
     when 1
       # Conversion results were downloaded and applied,
       # forward to both endpoints.
