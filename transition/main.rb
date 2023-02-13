@@ -47,12 +47,12 @@ end
 # Create the status table if it doesn't exist
 DB.create_table? :status do
   primary_key :id
-  Boolean converted
-  Boolean transitionned
+  Integer :mode, default: 0
 end
 
 status = DB[:status].first
-converted = !status.nil? && status[:converted]
+# Reads the mode from the database
+mode = status[:mode]
 
 # Block number at which the fork happens
 FORK_BLOCK = 1000
