@@ -72,6 +72,7 @@ Thread.new do
           forward_call(vkt_url, row[:payload])
         end
 
+        DB[:payloads].truncate
         set_mode 1
         break
       end
