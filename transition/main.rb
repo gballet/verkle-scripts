@@ -46,6 +46,9 @@ DB.create_table? :status do
 end
 
 # Reads the mode from the database
+if DB[:status].count == 0
+  DB[:status].insert
+end
 status = DB[:status].first
 mode = status[:mode]
 
