@@ -2,24 +2,19 @@
 # frozen_string_literal: true
 
 require 'sinatra'
+require 'sinatra/config_file'
 require 'json'
 require 'net/http'
 require 'uri'
 require 'sequel'
-require 'optimist'
 
-# Parse the command line arguments
-opts = Optimist::options do
-  opt :fork_block, "Block number at which to fork", type: :integer, default: 100000
-  opt :mpt_url, "URL of the MPT backend", type: :string, default: "https://localhost:8551"
-  opt :vkt_url, "URL of the verkle backend", type: :string, default: "https://localhost:8552"
-  opt :provider_url, "URL to poll for the converted data"
-end
+config_file './config.yml'
 
-fork_block = opts[:fork_block]
-mpt_url = opts[:mpt_url]
-vkt_url = opts[:vkt_url]
-provider_url = opts[:provider_url]
+fork_block = settings.fork_block
+mpt_url = settings.mpt_url
+vkt_url = settings.vkt_url
+provider_url = settings.provider_url
+
 
 POLL_PERIOD = 600
 
