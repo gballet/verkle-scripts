@@ -59,25 +59,30 @@ end
 
 # Start a thread to poll a data delivery address
 Thread.new do
-  while true
-    if mode == 0
-      uri = URI(provider_url)
-      response = Net::HTTP.get_response(uri)
-      if response.code == "200"
-        # check if the conversion has completed
-        resp = JSON.body.parse(response.body.read)
-        next if resp["done"] == false
+  while mode == 0
+    # uri = URI(provider_url)
+    # response = Net::HTTP.get_response(uri)
+    # if response.code == "200"
+    #   # check if the conversion has completed
+    #   resp = JSON.body.parse(response.body.read)
+    #   next if resp["done"] == false
 
-        File.write(status_file, mode)
-        # replay all the payloads in the db
-        DB[:payloads].order(:id).each do |row|
-          forward_call(vkt_url, row[:payload])
-        end
+    if File.exist?("converted.tgz")
+      system("tar xfz converted.tgz -C #{ENV["PWD"]}/converted")
+      pid = Process.spawn("geth --datadir=#{ENV["PWD"]}/converted")
 
-        DB[:payloads].truncate
-        set_mode 1
-        break
+      # replay all the payloads in the db
+      DB[:payloads].order(:id).each do |row|
+        forward_call(vkt_url, row[:payload])
       end
+
+      # Terminate geth for now, i.e. mode 2 won't be attempted
+      Process.kill("TERM", pid)
+      Process.wait(pid)
+
+      DB[:payloads].truncate
+      set_mode 1
+      break
     end
     sleep POLL_PERIOD
   end
