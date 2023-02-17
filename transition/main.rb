@@ -7,6 +7,7 @@ require 'json'
 require 'net/http'
 require 'uri'
 require 'sequel'
+require 'colorize'
 
 config_file './config.yml'
 
