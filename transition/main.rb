@@ -19,7 +19,7 @@ provider_url = settings.provider_url
 POLL_PERIOD = 600
 
 # A helper function to call one of the backends
-def forward_call url, data
+def forward_call url, data, token
   uri = URI(url)
   https = Net::HTTP.new(uri.host, uri.port)
   https.use_ssl = true
@@ -28,6 +28,15 @@ def forward_call url, data
   req.body = data
   req['Content-Type'] = 'application/json'
   https.request(req).body.read
+  req['Authorization'] = token
+  response = https.request(req)
+  data = response.body
+  if response.code.to_i == 200
+	puts "SUCCESS! ".green + data
+  else
+	puts "FAILURE with code #{response.code}".red + " data=#{data}"
+  end
+  data
 end
 
 # Create the db connection
@@ -94,8 +103,14 @@ end
 post '/' do
   data = request.body.read
   command = JSON.parse(data)
+  method = command['method']
+  if method != 'engine_newPayloadV1'
+	puts "Forwarding call of #{method}".yellow
+	return forward_call(mpt_url, data, request.env['HTTP_AUTHORIZATION'])
+  end
+  puts "Received newPayload #{data}".yellow
   parameters = command['params']
-  number = parameters['number'].to_i(16)  
+  number = parameters[0]['blockNumber'].to_i(16)
   
   set_mode(2) if number >= fork_block && mode < 2
   
@@ -103,19 +118,19 @@ post '/' do
     when 0
       # Ongoing conversion, save the data to the DB in
       # order to replay it later.
-      forward_call(mpt_url, data)
       DB[:payloads].insert(data: data, id: number)
+      forward_call(mpt_url, data, request.env['HTTP_AUTHORIZATION'])
     when 1
       # Conversion results were downloaded and applied,
       # forward to both endpoints.
-      response_vkt = forward_call(vkt_url, data)
+      response_vkt = forward_call(vkt_url, data, request.env['HTTP_AUTHORIZATION'])
       if response_vkt["error"]
         puts "Warning: backend B returned non-null error field: #{response_vkt["error"]}"
       end
-      forward_call(mpt_url, data)
+      forward_call(mpt_url, data, request.env['HTTP_AUTHORIZATION'])
   else
     # Switch block arrived, only forward to the verkle backend
-    forward_call(vkt_url, data)
+    forward_call(vkt_url, data, request.env['HTTP_AUTHORIZATION'])
   end
 
 end
