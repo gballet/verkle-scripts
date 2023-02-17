@@ -117,10 +117,13 @@ post '/' do
   
   case mode
     when 0
+	
       # Ongoing conversion, save the data to the DB in
-      # order to replay it later.
-      DB[:payloads].insert(data: data, id: number)
+      # order to replay it later. The same call can be
+      # sent multiple times, so ensure that it is only
+      # saved once into the DB.
       forward_call(mpt_url, data, request.env['HTTP_AUTHORIZATION'])
+      DB[:payloads].insert(data: data, id: number) unless DB[:payloads].find(id: number)
     when 1
       # Conversion results were downloaded and applied,
       # forward to both endpoints.
