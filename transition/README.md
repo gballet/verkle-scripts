@@ -6,7 +6,7 @@ TODO, the first hardfork will be manual
 
 ## Client transition script in `transition/main.rb`
 
-This script is an RPC proxy that forwards RPC calls from the CL to both a MPT-enabled EL, and a verkle-enabled EL. The forwarding depends on the mode that the script works in, and is detailed in both an upcoming writeup and this cryptic picture:
+This script is an RPC proxy that forwards RPC calls from the CL to both a MPT-enabled EL, and a verkle-enabled EL. The forwarding depends on the mode that the script works in, and is detailed in both [this writeup](https://docs.ethpandaops.io/knowledge-dump/Ethereum/verkle-shadow-forks/) and this cryptic picture:
 
 ![image](https://user-images.githubusercontent.com/3272758/219324606-aaaf77e7-d5a7-400c-8ca1-941b961db10e.png)
 
