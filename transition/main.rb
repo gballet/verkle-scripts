@@ -16,7 +16,6 @@ mpt_url = settings.mpt_url
 vkt_url = settings.vkt_url
 provider_url = settings.provider_url
 
-
 POLL_PERIOD = 600
 
 # A helper function to call one of the backends
@@ -33,9 +32,9 @@ def forward_call url, data, token
   response = https.request(req)
   data = response.body
   if response.code.to_i == 200
-	puts "SUCCESS! ".green + data
+   	puts "SUCCESS! ".green + data
   else
-	puts "FAILURE with code #{response.code}".red + " data=#{data}"
+    puts "FAILURE with code #{response.code}".red + " data=#{data}"
   end
   data
 end
@@ -106,8 +105,8 @@ post '/' do
   command = JSON.parse(data)
   method = command['method']
   if method != 'engine_newPayloadV1'
-	puts "Forwarding call of #{method}".yellow
-	return forward_call(mpt_url, data, request.env['HTTP_AUTHORIZATION'])
+    puts "Forwarding call of #{method}".yellow
+	  return forward_call(mpt_url, data, request.env['HTTP_AUTHORIZATION'])
   end
   puts "Received newPayload #{data}".yellow
   parameters = command['params']
@@ -117,7 +116,6 @@ post '/' do
   
   case mode
     when 0
-	
       # Ongoing conversion, save the data to the DB in
       # order to replay it later. The same call can be
       # sent multiple times, so ensure that it is only
