@@ -120,8 +120,8 @@ post '/' do
       # order to replay it later. The same call can be
       # sent multiple times, so ensure that it is only
       # saved once into the DB.
-      forward_call(mpt_url, data, request.env['HTTP_AUTHORIZATION'])
       DB[:payloads].insert(data: data, id: number) unless DB[:payloads].find(id: number)
+      forward_call(mpt_url, data, request.env['HTTP_AUTHORIZATION'])
     when 1
       # Conversion results were downloaded and applied,
       # forward to both endpoints.
