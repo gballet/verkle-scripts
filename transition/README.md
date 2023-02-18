@@ -31,6 +31,8 @@ provider_url: <URL of the conversion script, set to "" for the manual process>
 
 ### Running the script
 
+Run the transition script and specify the port that it listens (that is, the port that is given as the execution endpoint of the CL)
+
 ```
-$ bundle exec ./main.rb
+$ bundle exec ./main.rb -p <PORT>
 ```
