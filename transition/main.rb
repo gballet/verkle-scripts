@@ -22,12 +22,11 @@ POLL_PERIOD = 600
 def forward_call url, data, token
   uri = URI(url)
   https = Net::HTTP.new(uri.host, uri.port)
-  https.use_ssl = true
+  # https.use_ssl = true
 
   req =  Net::HTTP::Post.new(uri.path)
   req.body = data
   req['Content-Type'] = 'application/json'
-  https.request(req).body.read
   req['Authorization'] = token
   response = https.request(req)
   data = response.body
