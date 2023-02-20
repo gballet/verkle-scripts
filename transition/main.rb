@@ -75,12 +75,20 @@ Thread.new do
     #   resp = JSON.body.parse(response.body.read)
     #   next if resp["done"] == false
 
-    if File.exist?("converted.tgz")
+    if File.exist?("converted.tgz") && File.exist?("fork.txt")
+      fields = File.read('fork.txt').split
+      if fields.length != 3
+        puts "Incorrect format for fork.txt"
+        sleep 5
+        continue
+      end
+      conversion_block = fields[0].to_i
+      puts "Verkle backfilling from block #{conversion_block+1}"
       system("tar xfz converted.tgz -C #{ENV["PWD"]}/converted")
       pid = Process.spawn("geth --datadir=#{ENV["PWD"]}/converted")
 
       # replay all the payloads in the db
-      DB[:payloads].order(:id).each do |row|
+      DB[:payloads].where { id > conversion_block }.order(:id).each do |row|
         forward_call(vkt_url, row[:payload])
       end
 
