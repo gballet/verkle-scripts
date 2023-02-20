@@ -89,7 +89,23 @@ Thread.new do
 
       # replay all the payloads in the db
       DB[:payloads].where { id > conversion_block }.order(:id).each do |row|
-        forward_call(vkt_url, row[:payload])
+        result = forward_call(vkt_url, row[:payload])
+        result = JSON.parse(result)
+
+        if (id - conversion_block) % 10000 == 0
+          puts "Inserted block ##{id}, now sending FCU"
+          forward_call(vkt_url, '{
+            "jsonrpc": "2.0",
+            "method": "engine_forkchoiceUpdatedV1",
+            "params": [{
+              "finalizedBlockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "headBlockHash": "' + result["result"]["latestValidHash"] + '",
+              "safeBlockHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+            },
+            null],
+            "id": 1
+          }', token)
+        end
       end
 
       # Terminate geth for now, i.e. mode 2 won't be attempted
