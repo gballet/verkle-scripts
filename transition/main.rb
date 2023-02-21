@@ -8,6 +8,7 @@ require 'net/http'
 require 'uri'
 require 'sequel'
 require 'colorize'
+require 'socket'
 
 config_file './config.yml'
 
@@ -65,59 +66,28 @@ def set_mode number
   DB[:status].first.update(mode: mode)
 end
 
-# Start a thread to poll a data delivery address
-Thread.new do
-  while mode == 0
-    # uri = URI(provider_url)
-    # response = Net::HTTP.get_response(uri)
-    # if response.code == "200"
-    #   # check if the conversion has completed
-    #   resp = JSON.body.parse(response.body.read)
-    #   next if resp["done"] == false
+def ready_to_replay?
+  return File.exist?("converted.tgz") && File.exist?("fork.txt")
+end
 
-    if File.exist?("converted.tgz") && File.exist?("fork.txt")
-      fields = File.read('fork.txt').split
-      if fields.length != 3
-        puts "Incorrect format for fork.txt"
-        sleep 5
-        continue
-      end
-      conversion_block = fields[0].to_i
-      puts "Verkle backfilling from block #{conversion_block+1}"
-      system("tar xfz converted.tgz -C #{ENV["PWD"]}/converted")
-      pid = Process.spawn("geth --datadir=#{ENV["PWD"]}/converted")
-
-      # replay all the payloads in the db
-      DB[:payloads].where { id > conversion_block }.order(:id).each do |row|
-        result = forward_call(vkt_url, row[:payload])
-        result = JSON.parse(result)
-
-        if (id - conversion_block) % 10000 == 0
-          puts "Inserted block ##{id}, now sending FCU"
-          forward_call(vkt_url, '{
-            "jsonrpc": "2.0",
-            "method": "engine_forkchoiceUpdatedV1",
-            "params": [{
-              "finalizedBlockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-              "headBlockHash": "' + result["result"]["latestValidHash"] + '",
-              "safeBlockHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
-            },
-            null],
-            "id": 1
-          }', token)
-        end
-      end
-
-      # Terminate geth for now, i.e. mode 2 won't be attempted
-      Process.kill("TERM", pid)
-      Process.wait(pid)
-
-      DB[:payloads].truncate
-      set_mode 1
-      break
-    end
-    sleep POLL_PERIOD
+def parse_fork_txt
+  fields = File.read('fork.txt').split
+  if fields.length != 3
+    puts "Incorrect format for fork.txt"
+    sleep 5
   end
+
+  return fields[0].to_i, fields[1].to_i, fields[2]
+end
+
+def replay_entry row
+  result = ""
+  UNIXSocket.open("/home/devops/verkle-scripts/transition/converted/geth.ipc") do |socket|
+    socket.write(row[:payload])
+    result = socket.read
+  end
+  result = JSON.parse(result)
+
 end
 
 # This implements a post handler, that redirects
@@ -144,6 +114,14 @@ post '/' do
       # sent multiple times, so ensure that it is only
       # saved once into the DB.
       DB[:payloads].insert(data: data, id: number) unless DB[:payloads].first(id: number)
+      if !last_block.nil? || ready_to_replay?
+        if last_block.nil?
+          conversion_block, fork_block, converted_hash = parse_fork_txt
+          last_block = conversion_block+1
+        end
+        puts "Verkle backfilling from block #{last_block}".red
+        set_mode 1
+      end
       forward_call(mpt_url, data, request.env['HTTP_AUTHORIZATION'])
     when 1
       # Conversion results were downloaded and applied,
