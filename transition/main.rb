@@ -90,6 +90,8 @@ def replay_entry row
 
 end
 
+last_block = nil
+
 # This implements a post handler, that redirects
 # each RPC call to both the verkle and MPT backends,
 # until the transition block is reached.
@@ -117,9 +119,15 @@ post '/' do
       if !last_block.nil? || ready_to_replay?
         if last_block.nil?
           conversion_block, fork_block, converted_hash = parse_fork_txt
-          last_block = conversion_block+1
+          last_block = conversion_block
         end
         puts "Verkle backfilling from block #{last_block}".red
+        # replay all the payloads in the db
+        payloads = DB[:payloads].where { id > last_block }.order(:id).limit(10)
+        payloads.each do |row|
+          last_block += 1
+          replay_entry row
+        end
         set_mode 1
       end
       forward_call(mpt_url, data, request.env['HTTP_AUTHORIZATION'])
