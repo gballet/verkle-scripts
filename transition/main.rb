@@ -83,7 +83,7 @@ end
 def replay_entry row
   result = ""
   UNIXSocket.open("/home/devops/verkle-scripts/transition/converted/geth.ipc") do |socket|
-    socket.write(row[:payload])
+    socket.write(row[:data] + "\n")
     result = socket.read
   end
   result = JSON.parse(result)
