@@ -62,7 +62,7 @@ mode = status[:mode]
 
 def set_mode number
   mode = number
-  status.update(mode: mode)
+  DB[:status].first.update(mode: mode)
 end
 
 # Start a thread to poll a data delivery address
