@@ -80,14 +80,30 @@ def parse_fork_txt
   return fields[0].to_i, fields[1].to_i, fields[2]
 end
 
-def replay_entry row
+def replay_entry row, fcu
   result = ""
   UNIXSocket.open("/home/devops/verkle-scripts/transition/converted/geth.ipc") do |socket|
     socket.write(row[:data] + "\n")
-    result = socket.read
-  end
-  result = JSON.parse(result)
 
+    if fcu
+      j = JSON.parse(row[:data])
+      parameters = j["params"]
+      hash = parameters[0]["blockHash"]
+      socket.write <<END_JSON
+        {
+        "jsonrpc": "2.0",
+        "method": "engine_forkchoiceUpdatedV1",
+        "params": [{
+          "finalizedBlockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "headBlockHash": "#{hash}",
+          "safeBlockHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+         },
+         null],
+         "id": 1
+         }
+END_JSON
+    end
+  end
 end
 
 last_block = nil
@@ -126,7 +142,7 @@ post '/' do
         payloads = DB[:payloads].where { id > last_block }.order(:id).limit(10)
         payloads.each do |row|
           last_block += 1
-          replay_entry row
+          replay_entry row, (last_block % 100)
         end
         set_mode 1
       end
