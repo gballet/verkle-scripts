@@ -161,3 +161,7 @@ post '/' do
   end
 
 end
+
+get '/replay_status' do
+  last_block ? last_block.to_s : "replay hasn't started yet"
+end
