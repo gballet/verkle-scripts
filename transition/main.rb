@@ -85,6 +85,9 @@ def replay_entry row, fcu
   UNIXSocket.open("/home/devops/verkle-scripts/transition/converted/geth.ipc") do |socket|
     socket.write(row[:data] + "\n")
 
+    res = socket.gets
+    result = JSON.parse(res)
+    return false unless result["error"].nil?
     if fcu
       j = JSON.parse(row[:data])
       parameters = j["params"]
@@ -103,6 +106,7 @@ def replay_entry row, fcu
          }
 END_JSON
     end
+    return true
   end
 end
 
@@ -141,8 +145,8 @@ post '/' do
         # replay all the payloads in the db
         payloads = DB[:payloads].where { id > last_block }.order(:id).limit(10)
         payloads.each do |row|
+          break unless replay_entry(row, last_block % 100)
           last_block += 1
-          replay_entry row, (last_block % 100)
         end
         set_mode 1
       end
