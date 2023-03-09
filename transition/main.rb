@@ -9,6 +9,7 @@ require 'uri'
 require 'sequel'
 require 'colorize'
 require 'socket'
+require 'jwt'
 
 config_file './config.yml'
 
@@ -16,6 +17,9 @@ fork_block = settings.fork_block
 mpt_url = settings.mpt_url
 vkt_url = settings.vkt_url
 provider_url = settings.provider_url
+jwtsecret_path = settings.jwtsecret_path
+
+secret = File.read(jwtsecret_path)
 
 POLL_PERIOD = 600
 
@@ -82,32 +86,31 @@ end
 
 def replay_entry row, fcu
   result = ""
-  UNIXSocket.open("/home/devops/verkle-scripts/transition/converted/geth.ipc") do |socket|
-    socket.write(row[:data] + "\n")
+  jsondata = JSON.parse(row[:data])
+  token = JWT.encode jsondata, secret, 'HS256'
+  result = forward_call(vkt_url, row[:data], token)
 
-    res = socket.gets
-    result = JSON.parse(res)
-    return false unless result["error"].nil?
-    if fcu
-      j = JSON.parse(row[:data])
-      parameters = j["params"]
-      hash = parameters[0]["blockHash"]
-      socket.write <<END_JSON
-        {
-        "jsonrpc": "2.0",
-        "method": "engine_forkchoiceUpdatedV1",
-        "params": [{
-          "finalizedBlockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-          "headBlockHash": "#{hash}",
-          "safeBlockHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
-         },
-         null],
-         "id": 1
-         }
-END_JSON
-    end
-    return true
+  result = JSON.parse(res)
+  return false unless result["error"].nil?
+  if fcu
+    j = JSON.parse(row[:data])
+    parameters = j["params"]
+    hash = parameters[0]["blockHash"]
+    fcujson = {
+      jsonrpc: "2.0",
+      method: "engine_forkchoiceUpdatedV1",
+      params: [{
+        finalizedBlockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+        headBlockHash: hash,
+        safeBlockHash: "0x0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      nil],
+      id: 1
+    }
+    token = JWT.encode fcujson, secret, 'HS256'
+    forward_call(vkt_url, fcujson.to_json, token)
   end
+  return true
 end
 
 last_block = nil
