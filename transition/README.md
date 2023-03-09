@@ -26,7 +26,6 @@ Edit the configuration file `config.yml` in the same directory:
 fork_block: <block at which the switcv from MPT to VKT, pick a target block>
 mpt_url: <URL of the MPT-enbaled EL>
 vkt_url: <URL of the VKT-enabled EL>
-provider_url: <URL of the conversion script, set to "" for the manual process>
 jwtsecret_path: <path to the jwtsecret file>
 ```
 

@@ -17,7 +17,7 @@ config_file './config.yml'
 # fork_block = settings.fork_block
 mpt_url = settings.mpt_url
 vkt_url = settings.vkt_url
-provider_url = settings.provider_url
+# provider_url = settings.provider_url
 jwtsecret_path = settings.jwtsecret_path
 
 secret = File.read(jwtsecret_path)
