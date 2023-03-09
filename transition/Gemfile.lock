@@ -2,6 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     colorize (0.8.1)
+    jwt (2.7.0)
     mini_portile2 (2.8.1)
     multi_json (1.15.0)
     mustermann (3.0.0)
@@ -25,16 +26,19 @@ GEM
     sqlite3 (1.6.0)
       mini_portile2 (~> 2.8.0)
     tilt (2.0.11)
+    webrick (1.8.1)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   colorize
+  jwt
   sequel
   sinatra
   sinatra-contrib
   sqlite3
+  webrick
 
 BUNDLED WITH
    2.1.4

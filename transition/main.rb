@@ -11,9 +11,10 @@ require 'colorize'
 require 'socket'
 require 'jwt'
 
+raise "missing config.yml" unless File.exist?("./config.yml")
 config_file './config.yml'
 
-fork_block = settings.fork_block
+# fork_block = settings.fork_block
 mpt_url = settings.mpt_url
 vkt_url = settings.vkt_url
 provider_url = settings.provider_url
@@ -114,6 +115,7 @@ def replay_entry row, fcu
 end
 
 last_block = nil
+fork_block = nil
 
 # This implements a post handler, that redirects
 # each RPC call to both the verkle and MPT backends,
@@ -130,7 +132,7 @@ post '/' do
   parameters = command['params']
   number = parameters[0]['blockNumber'].to_i(16)
   
-  set_mode(2) if number >= fork_block && mode < 2
+  set_mode(2) if !fork_block.nil? && number >= fork_block && mode < 2
   
   case mode
     when 0
