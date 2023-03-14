@@ -124,7 +124,7 @@ post '/' do
   data = request.body.read
   command = JSON.parse(data)
   method = command['method']
-  if method != 'engine_newPayloadV1' || method != 'engine_newPayloadV2'
+  if method != 'engine_newPayloadV1' && method != 'engine_newPayloadV2'
     puts "Forwarding call of #{method}".yellow
 	  return forward_call(mpt_url, data, request.env['HTTP_AUTHORIZATION'])
   end
