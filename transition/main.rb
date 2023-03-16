@@ -89,7 +89,7 @@ def replay_entry row, fcu
   result = ""
   payload = {iat: Time.now.to_i}
   token = JWT.encode payload, settings.secret, 'HS256'
-  result = forward_call(settings.vkt_url, row[:data], token)
+  result = forward_call(settings.vkt_url, row[:data], "Bearer #{token}")
 
   result = JSON.parse(result)
   return false unless result["error"].nil?
@@ -110,7 +110,7 @@ def replay_entry row, fcu
     }
     payload = {iat: Time.now.to_i}
     token = JWT.encode payload, settings.secret, 'HS256'
-    forward_call(settings.vkt_url, fcujson.to_json, token)
+    forward_call(settings.vkt_url, fcujson.to_json, "Bearer #{token}")
   end
   return true
 end
