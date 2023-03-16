@@ -64,11 +64,11 @@ if DB[:status].count == 0
   DB[:status].insert
 end
 status = DB[:status].first
-mode = status[:mode]
+set :mode, status[:mode]
 
 def set_mode number
   mode = number
-  DB[:status].first.update(mode: mode)
+  DB[:status].first.update(mode: number)
 end
 
 def ready_to_replay?
@@ -133,9 +133,9 @@ post '/' do
   parameters = command['params']
   number = parameters[0]['blockNumber'].to_i(16)
   
-  set_mode(2) if !fork_block.nil? && number >= fork_block && mode < 2
+  set_mode(2) if !fork_block.nil? && number >= fork_block && settings.mode < 2
   
-  case mode
+  case settings.mode
     when 0
       # Ongoing conversion, save the data to the DB in
       # order to replay it later. The same call can be
