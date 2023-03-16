@@ -20,7 +20,8 @@ vkt_url = settings.vkt_url
 # provider_url = settings.provider_url
 jwtsecret_path = settings.jwtsecret_path
 
-secret = File.read(jwtsecret_path)
+secret = [File.read(jwtsecret_path)].pack("H*")
+set :secret, secret
 
 POLL_PERIOD = 600
 
@@ -88,10 +89,10 @@ end
 def replay_entry row, fcu
   result = ""
   jsondata = JSON.parse(row[:data])
-  token = JWT.encode jsondata, secret, 'HS256'
-  result = forward_call(vkt_url, row[:data], token)
+  token = JWT.encode jsondata, settings.secret, 'HS256'
+  result = forward_call(settings.vkt_url, row[:data], token)
 
-  result = JSON.parse(res)
+  result = JSON.parse(result)
   return false unless result["error"].nil?
   if fcu
     j = JSON.parse(row[:data])
@@ -108,8 +109,8 @@ def replay_entry row, fcu
       nil],
       id: 1
     }
-    token = JWT.encode fcujson, secret, 'HS256'
-    forward_call(vkt_url, fcujson.to_json, token)
+    token = JWT.encode fcujson, settings.secret, 'HS256'
+    forward_call(settings.vkt_url, fcujson.to_json, token)
   end
   return true
 end
