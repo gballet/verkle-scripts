@@ -108,7 +108,8 @@ def replay_entry row, fcu
       nil],
       id: 1
     }
-    token = JWT.encode fcujson, settings.secret, 'HS256'
+    payload = {iat: Time.now.to_i}
+    token = JWT.encode payload, settings.secret, 'HS256'
     forward_call(settings.vkt_url, fcujson.to_json, token)
   end
   return true
