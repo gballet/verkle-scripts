@@ -20,8 +20,7 @@ vkt_url = settings.vkt_url
 # provider_url = settings.provider_url
 jwtsecret_path = settings.jwtsecret_path
 
-secret = [File.read(jwtsecret_path)].pack("H*")
-set :secret, secret
+set :secret, [File.read(jwtsecret_path)[2..]].pack("H*")
 
 POLL_PERIOD = 600
 
