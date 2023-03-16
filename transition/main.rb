@@ -88,8 +88,8 @@ end
 
 def replay_entry row, fcu
   result = ""
-  jsondata = JSON.parse(row[:data])
-  token = JWT.encode jsondata, settings.secret, 'HS256'
+  payload = {iat: Time.now.to_i}
+  token = JWT.encode payload, settings.secret, 'HS256'
   result = forward_call(settings.vkt_url, row[:data], token)
 
   result = JSON.parse(result)
