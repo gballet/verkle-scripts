@@ -4,4 +4,4 @@
 rm -rf .preimages
 tar xfj preimages.tbz2
 
-dlv debug ./cmd/geth -- --datadir=.preimages import next_blocks4
+dlv debug ./cmd/geth -- --datadir=.preimages import ${1:="next_blocks4"}
