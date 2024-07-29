@@ -5,10 +5,22 @@ conversion_block = 17283233;
 A = load("witness_size.run5.1.csv");
 B = load("witness_size.run5.2.csv");
 C = load("witness_size.run5.3.csv");
+D = load("witness_size.run5.4.csv");
 
-subplot(1,3,1);boxplot(A(:,2));ylim([0 max(A(:,2))]);xlim([0 2]);title('spec')
-subplot(1,3,2);boxplot(B(:,2));ylim([0 max(A(:,2))]);xlim([0 2]);title('type 1')
-subplot(1,3,3);boxplot(C(:,2));ylim([0 max(A(:,2))]);xlim([0 2]);title('type 2')
+median(A)
+median(B)
+median(C)
+median(D)
+
+max(A)
+max(B)
+max(C)
+max(D)
+
+subplot(1,4,1);boxplot(A(:,2));ylim([0 max(A(:,2))]);xlim([0 2]);title('spec')
+subplot(1,4,2);boxplot(B(:,2));ylim([0 max(A(:,2))]);xlim([0 2]);title('type 1')
+subplot(1,4,3);boxplot(C(:,2));ylim([0 max(A(:,2))]);xlim([0 2]);title('type 2')
+subplot(1,4,4);boxplot(D(:,2));ylim([0 max(A(:,2))]);xlim([0 2]);title('type 3')
 axes('Position', [0, 0, 1, 1], 'Visible', 'off');
 text(0.5, 0.03, 'Comparison of witness sizes, during/post-transition', 'FontSize', 14, 'HorizontalAlignment', 'center');
 print('total.png', '-dpng');
@@ -27,8 +39,16 @@ axes('Position', [0, 0, 1, 1], 'Visible', 'off');
 text(0.5, 0.03, 'Comparison of type 2 witness sizes', 'FontSize', 14, 'HorizontalAlignment', 'center');
 print('compare_pre_post_transition_type_2.png', '-dpng');
 
-subplot(1,2,1);boxplot(B(B(:,1)>conversion_block,2));ylim([0 max(B(:,2))]);xlim([0 2]);title('type 1');
-subplot(1,2,2);boxplot(C(C(:,1)>conversion_block,2));ylim([0 max(B(:,2))]);xlim([0 2]);title('type 2');
+median(B(B(:,1)>conversion_block,2))
+median(C(C(:,1)>conversion_block,2))
+median(D(D(:,1)>conversion_block,2))
+max(B(B(:,1)>conversion_block,2))
+max(C(C(:,1)>conversion_block,2))
+max(D(D(:,1)>conversion_block,2))
+
+subplot(1,3,1);boxplot(B(B(:,1)>conversion_block,2));ylim([0 max(B(:,2))]);xlim([0 2]);title('type 1');
+subplot(1,3,2);boxplot(C(C(:,1)>conversion_block,2));ylim([0 max(B(:,2))]);xlim([0 2]);title('type 2');
+subplot(1,3,3);boxplot(D(D(:,1)>conversion_block,2));ylim([0 max(B(:,2))]);xlim([0 2]);title('type 3');
 axes('Position', [0, 0, 1, 1], 'Visible', 'off');
 text(0.5, 0.03, 'Comparison of witness sizes post-transition', 'FontSize', 14, 'HorizontalAlignment', 'center');
 print('compare_post_transition.png', '-dpng');
