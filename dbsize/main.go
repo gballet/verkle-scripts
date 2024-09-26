@@ -24,6 +24,8 @@ func main() {
 		totalEoA      int
 		totalSingle   int
 		totalSkipList int
+
+		savedSkipList int
 	)
 
 	// Create an iterator for keys starting with the given prefix
@@ -46,6 +48,8 @@ func main() {
 			totalSingle++
 		case 8:
 			totalSkipList++
+
+			savedSkipList += 32 - len(iter.Value())%32
 		default:
 			fmt.Println("invalid type", firstByte)
 			panic("invalid type")
@@ -56,5 +60,5 @@ func main() {
 	}
 	iter.Release()
 
-	fmt.Println("found", totalSize, "bytes", "internal", totalInternal, "bitmap", totalBitmap, "EoA", totalEoA, "single slot", totalSingle, "skip list", totalSkipList)
+	fmt.Println("found", totalSize, "bytes", "internal", totalInternal, "bitmap", totalBitmap, "EoA", totalEoA, "single slot", totalSingle, "skip list", totalSkipList, "(", savedSkipList, "bytes saved)")
 }
