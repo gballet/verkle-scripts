@@ -36,11 +36,16 @@ func main() {
 		skiplistSize  int
 
 		savedSkipList int
+
+		// List of depths that a leaf is found at
+		depths = make(map[int]int)
+
+		counter     = 0
+		leafCounter = 0
 	)
 
 	// Create an iterator for keys starting with the given prefix
 	iter := db.NewIterator(util.BytesPrefix(prefix), nil)
-	counter := 0
 
 	// Iterate through the database for keys with the given prefix
 	for iter.First(); iter.Valid(); iter.Next() {
@@ -54,17 +59,33 @@ func main() {
 		case 2:
 			totalBitmap++
 			bitmapSize += len(iter.Value())
+
+			depth := len(iter.Key()) - len("flat-")
+			depths[depth] = depths[depth] + 1
+			leafCounter++
 		case 3:
 			totalEoA++
 			eoaSize += len(iter.Value())
+
+			depth := len(iter.Key()) - len("flat-")
+			depths[depth] = depths[depth] + 1
+			leafCounter++
 		case 4:
 			totalSingle++
 			singleSize += len(iter.Value())
+
+			depth := len(iter.Key()) - len("flat-")
+			depths[depth] = depths[depth] + 1
+			leafCounter++
 		case 8:
 			totalSkipList++
 
 			savedSkipList += 32 - len(iter.Value())%32
 			skiplistSize += len(iter.Value())
+
+			depth := len(iter.Key()) - len("flat-")
+			depths[depth] = depths[depth] + 1
+			leafCounter++
 		default:
 			fmt.Println("invalid type", firstByte)
 			panic("invalid type")
@@ -83,4 +104,11 @@ func main() {
 	fmt.Printf("%-10s %-15d %-15d\n", "EoA", totalEoA, eoaSize)
 	fmt.Printf("%-10s %-15d %-15d\n", "Single", totalSingle, singleSize)
 	fmt.Printf("%-10s %-15d %-15d\n", "Skiplist", totalSkipList, skiplistSize)
+
+	fmt.Println("")
+	fmt.Printf("%-3s %-10s %s\n", "Depth", "Count", "%")
+	fmt.Println("--------------------------")
+	for depth, count := range depths {
+		fmt.Printf("%-3d %-10d %d%%\n", depth, count, 100*count/leafCounter)
+	}
 }
