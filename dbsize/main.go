@@ -53,6 +53,8 @@ func main() {
 
 		savedSkipList int
 
+		singleLeftZeros int
+
 		// List of depths that a leaf is found at
 		depths = make(map[int]int)
 
@@ -107,6 +109,20 @@ func main() {
 			totalSingle++
 			singleSize += len(iter.Value())
 
+			slot := iter.Value()[len(iter.Value())-32:]
+			for i := 0; i < 32; i++ {
+				if slot[i] != 0 {
+					break
+				}
+				singleLeftZeros++
+			}
+			// remove the size taken by a counter,
+			// althgough we _could_ stuff it in the
+			// head byte.
+			if singleLeftZeros > 0 {
+				singleLeftZeros -= 1
+			}
+
 			depth := len(iter.Key()) - len("flat-")
 			depths[depth] = depths[depth] + 1
 			leafCounter++
@@ -142,6 +158,7 @@ func main() {
 	iter.Release()
 
 	fmt.Println("found", totalSize, "bytes, ", savedSkipList, "bytes saved with skiplists")
+	fmt.Println(singleLeftZeros, "bytes could be saved with left-trim")
 	fmt.Printf("%-10s %-15s %-15s\n", "Type", "Count", "Size")
 	fmt.Println("----------------------------------------")
 	fmt.Printf("%-10s %-15d %-15d\n", "Branch", totalInternal, internalSize)
