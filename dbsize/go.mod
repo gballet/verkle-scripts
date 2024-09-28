@@ -16,7 +16,7 @@ require (
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240223125850-b1e8a79f509c // indirect
-	github.com/ethereum/go-verkle v0.1.1-0.20240829091221-dffa7562dbe9 // indirect
+	github.com/ethereum/go-verkle v0.1.1-0.20240916204744-12343ee9aba2 // indirect
 	github.com/getsentry/sentry-go v0.27.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect

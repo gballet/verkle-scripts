@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/ethereum/go-verkle"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -57,6 +58,9 @@ func main() {
 
 		counter     = 0
 		leafCounter = 0
+
+		zeroCount = 0
+		zero32    [32]byte
 	)
 
 	// Delete account and storage tries
@@ -119,6 +123,18 @@ func main() {
 			fmt.Println("invalid type", firstByte)
 			panic("invalid type")
 		}
+		n, err := verkle.ParseNode(iter.Value(), 0)
+		if err != nil {
+			panic(err)
+		}
+		leaf, ok := n.(*verkle.LeafNode)
+		if ok {
+			for _, v := range leaf.Values() {
+				if bytes.Equal(v[:], zero32[:]) {
+					zeroCount++
+				}
+			}
+		}
 		if counter%1_000_000 == 0 {
 			fmt.Println("accumulated", totalSize, "bytes (", totalSize/(1024*1024*1024), "G), scanned", counter, "keys")
 		}
@@ -140,4 +156,6 @@ func main() {
 	for depth, count := range depths {
 		fmt.Printf("%-3d %-10d %d%%\n", depth, count, 100*count/leafCounter)
 	}
+
+	fmt.Printf("\n\n%d leaves are 0\n", zeroCount)
 }
