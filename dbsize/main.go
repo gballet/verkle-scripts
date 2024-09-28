@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/syndtr/goleveldb/leveldb"
@@ -8,8 +9,22 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
+// used to delete a key range we don't need for data collection
+func deleteUselessKeyRanges(db *leveldb.DB, rg []byte) {
+	delIter := db.NewIterator(util.BytesPrefix(rg), nil)
+	for delIter.First(); delIter.Valid(); delIter.Next() {
+		// safeguard: ensure that the key starts with the block prefix
+		// so that we don't accidentally delete stuff
+		if bytes.Equal(delIter.Key()[:len(rg)], rg) {
+			db.Delete(delIter.Key(), nil)
+		}
+	}
+	db.CompactRange(*util.BytesPrefix(rg))
+}
+
 func main() {
-	db, err := leveldb.OpenFile("/chains/.ethereum_hash/geth/chaindata", &opt.Options{ReadOnly: true})
+	db, err := leveldb.OpenFile("/chains/.ethereum_hash/geth/chaindata", &opt.Options{})
+	// db, err := leveldb.OpenFile("/chains/.ethereum_hash/geth/chaindata", &opt.Options{ReadOnly: true})
 	if err != nil {
 		panic(err)
 	}
@@ -43,6 +58,20 @@ func main() {
 		counter     = 0
 		leafCounter = 0
 	)
+
+	// Delete account and storage tries
+	fmt.Println("Deleting account tries")
+	deleteUselessKeyRanges(db, []byte("A"))
+	fmt.Println("Deleting storage tries")
+	deleteUselessKeyRanges(db, []byte("O"))
+	fmt.Println("Deleting block bodies")
+	deleteUselessKeyRanges(db, []byte("b"))
+	fmt.Println("Deleting receipts")
+	deleteUselessKeyRanges(db, []byte("r"))
+	fmt.Println("Deleting Blooms")
+	deleteUselessKeyRanges(db, []byte("B"))
+	fmt.Println("Deleting tx index")
+	deleteUselessKeyRanges(db, []byte("l"))
 
 	// Create an iterator for keys starting with the given prefix
 	iter := db.NewIterator(util.BytesPrefix(prefix), nil)
