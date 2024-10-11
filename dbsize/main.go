@@ -44,7 +44,7 @@ func main() {
 	db, err := leveldb.OpenFile(dirPath+"/geth/chaindata", &opt.Options{})
 	// db, err := leveldb.OpenFile("/chains/.ethereum_hash/geth/chaindata", &opt.Options{ReadOnly: true})
 	if err != nil {
-		panic(err)
+		log.Fatalf("error opening datadir: %v", err)
 	}
 	defer db.Close()
 
@@ -157,12 +157,11 @@ func main() {
 			depths[depth] = depths[depth] + 1
 			leafCounter++
 		default:
-			fmt.Println("invalid type", firstByte)
-			panic("invalid type")
+			log.Fatalf("invalid type: %v", firstByte)
 		}
 		n, err := verkle.ParseNode(iter.Value(), 0)
 		if err != nil {
-			panic(err)
+			log.Fatalf("error parsing node: %v", err)
 		}
 		leaf, ok := n.(*verkle.LeafNode)
 		if ok {
