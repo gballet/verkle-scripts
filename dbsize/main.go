@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/ethereum/go-verkle"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -24,7 +26,22 @@ func deleteUselessKeyRanges(db *leveldb.DB, rg []byte) {
 }
 
 func main() {
-	db, err := leveldb.OpenFile("/chains/.ethereum_hash/geth/chaindata", &opt.Options{})
+	if len(os.Args) < 2 {
+		log.Fatal("Please provide a directory path as an argument.")
+	}
+
+	dirPath := os.Args[1]
+
+	fileInfo, err := os.Stat(dirPath)
+	if err != nil {
+		log.Fatalf("Error checking directory: %v", err)
+	}
+
+	if !fileInfo.IsDir() {
+		log.Fatalf("%s is not a directory.", dirPath)
+	}
+
+	db, err := leveldb.OpenFile(dirPath+"/geth/chaindata", &opt.Options{})
 	// db, err := leveldb.OpenFile("/chains/.ethereum_hash/geth/chaindata", &opt.Options{ReadOnly: true})
 	if err != nil {
 		panic(err)
