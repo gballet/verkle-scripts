@@ -61,8 +61,9 @@ func main() {
 		counter     = 0
 		leafCounter = 0
 
-		zeroCount = 0
-		zero32    [32]byte
+		zeroCount       = 0
+		zeroSingleCount = 0
+		zero32          [32]byte
 	)
 
 	// Delete account and storage tries
@@ -122,6 +123,9 @@ func main() {
 			if singleLeftZeros > 0 {
 				singleLeftZeros -= 1
 			}
+			if bytes.Equal(iter.Value(), zero32[:]) {
+				zeroSingleCount++
+			}
 
 			depth := len(iter.Key()) - len("flat-")
 			depths[depth] = depths[depth] + 1
@@ -175,4 +179,5 @@ func main() {
 	}
 
 	fmt.Printf("\n\n%d leaves are 0\n", zeroCount)
+	fmt.Printf("%d single-slots are 0s", zeroSingleCount)
 }
