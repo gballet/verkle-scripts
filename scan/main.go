@@ -20,10 +20,16 @@ func main() {
 	var buf [8]byte
 	var size uint64
 	var blocknum uint64
+	maxstatediffs, minstatediffs, statediffcount := 0, 100000, 0
+	blockcount := 0
+	defer func() {
+		fmt.Printf("state diffs: min=%d max=%d, avg=%d\n", minstatediffs, maxstatediffs, statediffcount/blockcount)
+	}()
 	for err != io.EOF {
 		n, err := f.Read(buf[:])
 		if n != 8 {
-			log.Fatalf("could not read block number")
+			fmt.Println("could not read block number")
+			return
 		}
 		if err != nil {
 			log.Fatalf("error reading file: %v", err)
@@ -52,6 +58,14 @@ func main() {
 		d := dynssz.NewDynSsz(map[string]any{})
 		d.UnmarshalSSZ(&ew, encoded)
 
+		if len(ew.StateDiff) < minstatediffs {
+			minstatediffs = len(ew.StateDiff)
+		}
+		if len(ew.StateDiff) > maxstatediffs {
+			maxstatediffs = len(ew.StateDiff)
+		}
+		statediffcount += len(ew.StateDiff)
+
 		keysize := 0
 		presize := 0
 		postsize := 0
@@ -66,8 +80,17 @@ func main() {
 
 			postsize += len(statediff.Updates) * 32
 			postsize += len(statediff.Inserts) * 32
+
 		}
 
-		fmt.Printf("%d,%d,%d,%d,%d,%d,%d,%d\n", blocknum, keysize, size, 100*uint64(keysize)/size, presize, 100*uint64(presize)/size, postsize, 100*uint64(postsize)/size)
+		vpsize := len(ew.VerkleProof.OtherStems)*31 +
+			len(ew.VerkleProof.CommitmentsByPath)*32 +
+			len(ew.VerkleProof.DepthExtensionPresent) +
+			32 + // D
+			32 + // FinalEvaluation
+			2*8*32 // C_L, C_R
+
+		fmt.Printf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", blocknum, keysize, size, 100*uint64(keysize)/size, presize, 100*uint64(presize)/size, postsize, 100*uint64(postsize)/size, vpsize, 100*uint64(vpsize)/size, len(ew.StateDiff))
+		blockcount++
 	}
 }
